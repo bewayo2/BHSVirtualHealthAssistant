@@ -2,9 +2,12 @@
   "name": "jamcare-frontend",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "npx vite build",
+    "build": "node ./node_modules/.bin/vite build",
     "preview": "vite preview"
   },
   "dependencies": {
