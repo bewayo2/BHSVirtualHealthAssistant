@@ -1,6 +1,8 @@
 import os
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
@@ -14,7 +16,7 @@ if not OPENAI_API_KEY:
 
 client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
-SYSTEM_PROMPT = '''SYSTEM — BHS Virutal Health Assistant
+SYSTEM_PROMPT = '''SYSTEM — BHS Virtual Health Assistant
 
 PURPOSE  
 You provide trustworthy, plain-language health information to people in Jamaica.  
@@ -100,6 +102,10 @@ class ChatRequest(BaseModel):
     chat_id: Optional[str] = None
     consent: bool = True
 
+@app.get("/")
+async def read_root():
+    return FileResponse('frontend/dist/index.html')
+
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
     if not request.consent:
@@ -119,4 +125,7 @@ async def chat_endpoint(request: ChatRequest):
         import traceback
         print("ERROR in /chat endpoint:", e)
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Mount static files from frontend/dist
+app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="static") 

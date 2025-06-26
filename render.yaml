@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: bhs-virtual-health-assistant
+    env: python
+    buildCommand: |
+      # Install Python dependencies
+      pip install -r backend/requirements.txt
+      # Install Node.js dependencies and build frontend
+      cd frontend && npm install && npm run build
+      # Move built frontend to backend directory
+      cd .. && mkdir -p backend/frontend && cp -r frontend/dist/* backend/frontend/
+    startCommand: cd backend && gunicorn main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11 
