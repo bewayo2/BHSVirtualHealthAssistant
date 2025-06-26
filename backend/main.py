@@ -145,7 +145,7 @@ async def chat_endpoint(request: ChatRequest):
         response = await client.chat.completions.create(
             model="o4-mini-2025-04-16",
             messages=full_messages,
-            max_completion_tokens=1024,
+            max_completion_tokens=5000,
         )
         print("FULL OPENAI RESPONSE:", response)
         answer = response.choices[0].message.content if response.choices and hasattr(response.choices[0].message, 'content') else None
