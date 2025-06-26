@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
@@ -104,7 +104,37 @@ class ChatRequest(BaseModel):
 
 @app.get("/")
 async def read_root():
-    return FileResponse('frontend/dist/index.html')
+    # Check if frontend files exist
+    frontend_path = "frontend/dist/index.html"
+    if os.path.exists(frontend_path):
+        return FileResponse(frontend_path)
+    else:
+        # Fallback HTML if frontend build failed
+        return HTMLResponse("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>BHS Virtual Health Assistant</title>
+            <style>
+                body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                .container { max-width: 600px; margin: 0 auto; }
+                .api-status { background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>BHS Virtual Health Assistant</h1>
+                <p>Backend API is running successfully!</p>
+                <div class="api-status">
+                    <h3>API Endpoints:</h3>
+                    <p><strong>POST /chat</strong> - Chat with the health assistant</p>
+                    <p><strong>GET /</strong> - This page</p>
+                </div>
+                <p>Frontend is being built. Please check back in a few minutes.</p>
+            </div>
+        </body>
+        </html>
+        """)
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
@@ -127,5 +157,6 @@ async def chat_endpoint(request: ChatRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# Mount static files from frontend/dist
-app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="static") 
+# Mount static files from frontend/dist if it exists
+if os.path.exists("frontend/dist"):
+    app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="static") 
